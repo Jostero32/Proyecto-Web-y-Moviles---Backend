@@ -1,7 +1,8 @@
 import express, { Router } from "express";
 import cors from "cors";
 import morgan from "morgan";
-
+import userRoutes from "./routes/user.routes.js";
+import { swaggerUi, swaggerSpec } from "./config/swagger.js";
 
 const app = express();
 
@@ -11,6 +12,6 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 // Rutas
-app.use("/api", Router().get("/", (req, res) => {res.json({ message: "User route" });}));
-
+app.use("/users",userRoutes);
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 export default app;

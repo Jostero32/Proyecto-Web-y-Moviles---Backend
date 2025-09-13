@@ -1,0 +1,23 @@
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "API Marketplace",
+      version: "1.0.0",
+      description: "Documentación de la API",
+    },
+    servers: [
+      {
+        url: "http://localhost:"+process.env.PORT || 4000+"/",
+      },
+    ],
+  },
+  apis: ["./src/routes/*.js"], // 👈 donde pondremos las anotaciones
+};
+
+const swaggerSpec = swaggerJSDoc(options);
+
+export { swaggerUi, swaggerSpec };
