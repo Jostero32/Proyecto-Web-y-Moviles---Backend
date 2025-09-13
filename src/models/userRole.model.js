@@ -9,4 +9,4 @@ const UserRole = sequelize.define("UserRole", {
   timestamps: false,
 });
 
-export default UserRole;
+export default UserRole; 
