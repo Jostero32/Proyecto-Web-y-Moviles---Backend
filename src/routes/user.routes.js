@@ -8,7 +8,7 @@ import {
   deleteUser,
   login,
 } from "../controllers/user.controller.js";
-
+import { authenticateToken } from "../middlewares/auth.middleware.js";
 const router = Router();
 
 /**
@@ -105,7 +105,7 @@ const router = Router();
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.get("/", getAllUsers);
+router.get("/",authenticateToken, getAllUsers);
 
 /**
  * @swagger
@@ -130,7 +130,7 @@ router.get("/", getAllUsers);
  *       404:
  *         description: Usuario no encontrado
  */
-router.get("/:id", getUserById);
+router.get("/:id",authenticateToken, getUserById);
 
 /**
  * @swagger
@@ -197,7 +197,7 @@ router.post("/login", login);
  *       404:
  *         description: Usuario no encontrado
  */
-router.put("/:id", updateUser);
+router.put("/:id",authenticateToken, updateUser);
 
 /**
  * @swagger
@@ -218,6 +218,6 @@ router.put("/:id", updateUser);
  *       404:
  *         description: Usuario no encontrado
  */
-router.delete("/:id", deleteUser);
+router.delete("/:id",authenticateToken, deleteUser);
 
 export default router;

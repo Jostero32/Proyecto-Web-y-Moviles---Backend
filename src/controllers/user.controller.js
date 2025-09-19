@@ -1,6 +1,7 @@
 import { User, Role, UserRole } from "../models/index.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt.js";
+import sequelize from "../config/database.js";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -33,21 +34,26 @@ export const getUserById = async (req, res) => {
 
 // Registro de usuario
 export const register = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
+    
+
     const { dni, email, name, password, phone, avatarUrl, roleName } = req.body;
     const userExists = await User.findOne({ where: { email } });
     if (userExists) return res.status(400).json({ message: "Email ya registrado" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ dni, email, name, passwordHash, phone, avatarUrl, rating: 0 });
+    const user = await User.create({ dni, email, name, passwordHash, phone, avatarUrl, rating: 0 },{transaction: t});
 
     // Asignar rol
     const role = await Role.findOne({ where: { roleName } });
     if (!role) return res.status(400).json({ message: "Rol no válido" });
-    await UserRole.create({ userId: user.id, roleId: role.id });
+    await UserRole.create({ userId: user.id, roleId: role.id },{transaction: t});
 
+    await t.commit(); 
     res.status(201).json({ message: "Usuario registrado", user });
   } catch (error) {
+    await t.rollback(); 
     res.status(500).json({ message: "Error al registrar usuario", error });
   }
 };
@@ -60,6 +66,7 @@ export const login = async (req, res) => {
     if (!user) return res.status(400).json({ message: "Usuario no encontrado" });
 
     const valid = await bcrypt.compare(password, user.passwordHash);
+    console.log(password, user.passwordHash, valid);
     if (!valid) return res.status(400).json({ message: "Contraseña incorrecta" });
 
     // Obtener roles
@@ -86,23 +93,25 @@ export const createUser = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { name, phone, avatarUrl, roleName } = req.body;
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
-    await user.update({ name, phone, avatarUrl });
+    await user.update({ name, phone, avatarUrl },{transaction: t});
 
     // Cambiar rol si se envía
     if (roleName) {
       const role = await Role.findOne({ where: { roleName } });
       if (!role) return res.status(400).json({ message: "Rol no válido" });
-      await UserRole.destroy({ where: { userId: user.id } });
-      await UserRole.create({ userId: user.id, roleId: role.id });
+      await UserRole.destroy({ where: { userId: user.id } },{transaction: t});
+      await UserRole.create({ userId: user.id, roleId: role.id },{transaction: t});
     }
-
+    await t.commit();
     res.json({ message: "Usuario actualizado", user });
   } catch (error) {
+    await t.rollback();
     res.status(500).json({
       message: "Error al actualizar usuario",
       error: error.message || error,
@@ -112,29 +121,36 @@ export const updateUser = async (req, res) => {
 };
 
 export const deleteUser = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
+    
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-    await UserRole.destroy({ where: { userId: user.id } });
-    await user.destroy();
+    await UserRole.destroy({ where: { userId: user.id } },{transaction: t});
+    await user.destroy({},{transaction: t});
+    await t.commit();
     res.json({ message: "Usuario eliminado" });
   } catch (error) {
+    await t.rollback();
     res.status(500).json({ message: "Error al eliminar usuario", error });
   }
 };
 
 // Cambiar rol de usuario
 export const changeUserRole = async (req, res) => {
+  const t = await sequelize.transaction();
   try {
     const { roleName } = req.body;
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
     const role = await Role.findOne({ where: { roleName } });
     if (!role) return res.status(400).json({ message: "Rol no válido" });
-    await UserRole.destroy({ where: { userId: user.id } });
-    await UserRole.create({ userId: user.id, roleId: role.id });
+    await UserRole.destroy({ where: { userId: user.id } },{transaction: t});
+    await UserRole.create({ userId: user.id, roleId: role.id },{transaction: t});
+    await t.commit();
     res.json({ message: "Rol cambiado", userId: user.id, nuevoRol: roleName });
   } catch (error) {
+    await t.rollback();
     res.status(500).json({ message: "Error al cambiar rol", error });
   }
 };
