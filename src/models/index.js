@@ -16,6 +16,8 @@ import NotificationType from "./notificationType.model.js";
    RELATIONS
    ========================== */
 
+UserRole.belongsTo(Role, { foreignKey: "roleId", as: "Role" });
+
 // Users ↔ Roles (Many-to-Many)
 User.belongsToMany(Role, { through: UserRole, foreignKey: "userId", otherKey: "roleId" });
 Role.belongsToMany(User, { through: UserRole, foreignKey: "roleId", otherKey: "userId" });

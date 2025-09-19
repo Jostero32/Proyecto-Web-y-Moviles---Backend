@@ -25,5 +25,5 @@ app.use("/products", productRoutes);
 app.use("/conversations", conversationRoutes);
 app.use("/messages", messageRoutes);
 app.use("/notifications", notificationRoutes);
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 export default app;
