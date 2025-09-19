@@ -66,7 +66,6 @@ export const login = async (req, res) => {
     if (!user) return res.status(400).json({ message: "Usuario no encontrado" });
 
     const valid = await bcrypt.compare(password, user.passwordHash);
-    console.log(password, user.passwordHash, valid);
     if (!valid) return res.status(400).json({ message: "Contraseña incorrecta" });
 
     // Obtener roles
