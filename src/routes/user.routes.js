@@ -26,6 +26,8 @@ const router = Router();
  *           type: string
  *         name:
  *           type: string
+ *         lastname:
+ *           type: string
  *         phone:
  *           type: string
  *         avatarUrl:
@@ -47,6 +49,7 @@ const router = Router();
  *         - dni
  *         - email
  *         - name
+ *         - lastname
  *         - password
  *         - phone
  *         - avatarUrl
@@ -57,6 +60,8 @@ const router = Router();
  *         email:
  *           type: string
  *         name:
+ *           type: string
+ *         lastname:
  *           type: string
  *         password:
  *           type: string
@@ -80,6 +85,8 @@ const router = Router();
  *       type: object
  *       properties:
  *         name:
+ *           type: string
+ *         lastname:
  *           type: string
  *         phone:
  *           type: string

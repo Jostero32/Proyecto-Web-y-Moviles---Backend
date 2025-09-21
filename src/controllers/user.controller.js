@@ -43,7 +43,7 @@ export const register = async (req, res) => {
     if (userExists) return res.status(400).json({ message: "Email ya registrado" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ dni, email, name, passwordHash, phone, avatarUrl, rating: 0 },{transaction: t});
+    const user = await User.create({ dni, email, name,lastname, passwordHash, phone, avatarUrl, rating: 0 },{transaction: t});
 
     // Asignar rol
     const role = await Role.findOne({ where: { roleName } });
@@ -94,11 +94,11 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { name, phone, avatarUrl, roleName } = req.body;
+    const { name, lastname, phone, avatarUrl, roleName } = req.body;
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
-    await user.update({ name, phone, avatarUrl },{transaction: t});
+    await user.update({ name,lastname, phone, avatarUrl },{transaction: t});
 
     // Cambiar rol si se envía
     if (roleName) {

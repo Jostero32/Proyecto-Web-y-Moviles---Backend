@@ -13,6 +13,7 @@ services:
       DB_HOST: db-postgres
       DB_DIALECT: postgres
       JWT_SECRET: mi_secreto_jwt
+      PORT: 3020
     depends_on:
       - db-postgres
     ports:
@@ -27,7 +28,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5555:5432"
 
 volumes:
   postgres_data:
