@@ -38,12 +38,12 @@ export const register = async (req, res) => {
   try {
     
 
-    const { dni, email, name, password, phone, avatarUrl, roleName } = req.body;
+    const { dni, email, name,lastname, password, phone, avatarUrl, roleName } = req.body;
     const userExists = await User.findOne({ where: { email } });
     if (userExists) return res.status(400).json({ message: "Email ya registrado" });
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ dni, email, name,lastname, passwordHash, phone, avatarUrl, rating: 0 },{transaction: t});
+    const user = await User.create({ dni:dni,email: email, name: name,lastname: lastname,passwordHash: passwordHash, phone:phone,avatarUrl: avatarUrl, rating: 0 },{transaction: t});
 
     // Asignar rol
     const role = await Role.findOne({ where: { roleName } });
@@ -54,7 +54,7 @@ export const register = async (req, res) => {
     res.status(201).json({ message: "Usuario registrado", user });
   } catch (error) {
     await t.rollback(); 
-    res.status(500).json({ message: "Error al registrar usuario", error });
+    res.status(500).json({ message: "Error al registrar usuario", error:error.message } );
   }
 };
 
@@ -98,7 +98,7 @@ export const updateUser = async (req, res) => {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
-    await user.update({ name,lastname, phone, avatarUrl },{transaction: t});
+    await user.update({name: name,lastname: lastname,phone: phone,avatarUrl: avatarUrl },{transaction: t});
 
     // Cambiar rol si se envía
     if (roleName) {
