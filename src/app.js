@@ -9,6 +9,7 @@ import conversationRoutes from "./routes/conversation.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import { swaggerUi, swaggerSpec } from "./config/swagger.js";
+import {authenticateToken} from "./middlewares/auth.middleware.js"
 
 const app = express();
 
@@ -19,11 +20,12 @@ app.use(express.json());
 
 // Rutas
 app.use("/users",userRoutes);
-app.use("/roles", roleRoutes);
-app.use("/categories", categoryRoutes);
-app.use("/products", productRoutes);
-app.use("/conversations", conversationRoutes);
-app.use("/messages", messageRoutes);
-app.use("/notifications", notificationRoutes);
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/roles",authenticateToken, roleRoutes);
+app.use("/categories",authenticateToken, categoryRoutes);
+app.use("/products",authenticateToken, productRoutes);
+app.use("/conversations",authenticateToken, conversationRoutes);
+app.use("/messages",authenticateToken, messageRoutes);
+app.use("/notifications",authenticateToken, notificationRoutes);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 export default app;

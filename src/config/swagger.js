@@ -11,7 +11,21 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:"+process.env.PORT || 4000+"/",
+        url: `http://${process.env.URL || "localhost"}:${process.env.PORT_SWAGGER || 4000}`,
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
       },
     ],
   },
