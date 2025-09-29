@@ -38,7 +38,7 @@ export const register = async (req, res) => {
   try {
     
 
-    const { dni, email, name,lastname, password, phone, avatarUrl, roleName } = req.body;
+    const { dni, email, name,lastname, password, phone, avatarUrl, roleId } = req.body;
     const userExists = await User.findOne({ where: { email } });
     if (userExists) return res.status(400).json({ message: "Email ya registrado" });
 
@@ -46,7 +46,7 @@ export const register = async (req, res) => {
     const user = await User.create({ dni:dni,email: email, name: name,lastname: lastname,passwordHash: passwordHash, phone:phone,avatarUrl: avatarUrl, rating: 0 },{transaction: t});
 
     // Asignar rol
-    const role = await Role.findOne({ where: { roleName } });
+    const role = await Role.findOne({ where: { id:roleId } });
     if (!role) return res.status(400).json({ message: "Rol no válido" });
     await UserRole.create({ userId: user.id, roleId: role.id },{transaction: t});
 
@@ -94,7 +94,7 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { name, lastname, phone, avatarUrl, roleName } = req.body;
+    const { name, lastname, phone, avatarUrl, roleId } = req.body;
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
@@ -102,7 +102,7 @@ export const updateUser = async (req, res) => {
 
     // Cambiar rol si se envía
     if (roleName) {
-      const role = await Role.findOne({ where: { roleName } });
+      const role = await Role.findOne({ where: { id:roleId } });
       if (!role) return res.status(400).json({ message: "Rol no válido" });
       await UserRole.destroy({ where: { userId: user.id } },{transaction: t});
       await UserRole.create({ userId: user.id, roleId: role.id },{transaction: t});

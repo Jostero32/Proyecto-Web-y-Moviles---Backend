@@ -53,7 +53,7 @@ const router = Router();
  *         - password
  *         - phone
  *         - avatarUrl
- *         - roleName
+ *         - roleId
  *       properties:
  *         dni:
  *           type: string
@@ -69,8 +69,8 @@ const router = Router();
  *           type: string
  *         avatarUrl:
  *           type: string
- *         roleName:
- *           type: string
+ *         roleId:
+ *           type: integer
  *     UserLogin:
  *       type: object
  *       required:
@@ -92,8 +92,8 @@ const router = Router();
  *           type: string
  *         avatarUrl:
  *           type: string
- *         roleName:
- *           type: string
+ *         roleId:
+ *           type: integer
  */
 
 /**
