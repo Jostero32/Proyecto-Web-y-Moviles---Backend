@@ -153,3 +153,17 @@ export const changeUserRole = async (req, res) => {
     res.status(500).json({ message: "Error al cambiar rol", error });
   }
 };
+
+
+export const whoAmI = async (req, res) => {
+
+  try {
+    const userId = req.user.id; // viene del JWT
+    const user = await User.findByPk(userId, {
+      include: [Role]
+    });
+    return res.json(user);
+  } catch (error) {
+    return res.status(500).json({ message: "Error fetching user", error });
+  }
+};

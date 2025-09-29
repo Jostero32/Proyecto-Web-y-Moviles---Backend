@@ -7,6 +7,7 @@ import {
   updateUser,
   deleteUser,
   login,
+  whoAmI,
 } from "../controllers/user.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
 const router = Router();
@@ -113,6 +114,24 @@ const router = Router();
  *                 $ref: '#/components/schemas/User'
  */
 router.get("/",authenticateToken, getAllUsers);
+
+/**
+ * @swagger
+ * /users/whoami:
+ *   get:
+ *     summary: Obtiene usuario actual basado en el token
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Usuario encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       500:
+ *         description: Usuario no encontrado
+ */
+router.get("/whoami",authenticateToken, whoAmI);
 
 /**
  * @swagger
@@ -226,5 +245,6 @@ router.put("/:id",authenticateToken, updateUser);
  *         description: Usuario no encontrado
  */
 router.delete("/:id",authenticateToken, deleteUser);
+
 
 export default router;
