@@ -56,3 +56,6 @@ seeders/
 .cache/
 .eslintcache
 vite.config.ts.timestamp-*
+./src/uploads/users/*
+./src/uploads/products/*
+./src/uploads/tmp/*

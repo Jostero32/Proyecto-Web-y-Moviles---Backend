@@ -6,17 +6,17 @@ import {
   updateProduct,
   updateProductStatus,
   deleteProduct,
+  uploadProductPhotos
 } from "../controllers/product.controller.js";
 
 const router = Router();
+
 /**
  * @swagger
  * tags:
  *   name: Products
  *   description: API para gestión de productos
  */
-
-
 
 /**
  * @swagger
@@ -36,14 +36,34 @@ const router = Router();
  *       500:
  *         description: Error al recuperar productos
  *   post:
- *     summary: Crear un nuevo producto
+ *     summary: Crear un nuevo producto con fotos
  *     tags: [Products]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/ProductInput'
+ *             type: object
+ *             properties:
+ *               sellerId:
+ *                 type: integer
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *                 format: float
+ *               categoryId:
+ *                 type: integer
+ *               status:
+ *                 type: string
+ *                 enum: [active, sold, inactive, reserved]
+ *               photos:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
  *     responses:
  *       201:
  *         description: Producto creado exitosamente
@@ -51,9 +71,9 @@ const router = Router();
  *         description: Categoría o vendedor no encontrado
  *       500:
  *         description: Error al crear producto
-*/
+ */
 router.get("/", getAllProducts);
-router.post("/", createProduct);
+router.post("/", uploadProductPhotos.array("photos", 10), createProduct);
 
 /**
  * @swagger
@@ -77,7 +97,7 @@ router.post("/", createProduct);
  *       404:
  *         description: Producto no encontrado
  *   put:
- *     summary: Actualizar un producto
+ *     summary: Actualizar un producto y opcionalmente reemplazar sus fotos
  *     tags: [Products]
  *     parameters:
  *       - in: path
@@ -88,9 +108,27 @@ router.post("/", createProduct);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/ProductInput'
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *                 format: float
+ *               categoryId:
+ *                 type: integer
+ *               status:
+ *                 type: string
+ *                 enum: [active, sold, inactive, reserved]
+ *               photos:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
  *     responses:
  *       200:
  *         description: Producto actualizado exitosamente
@@ -118,8 +156,9 @@ router.post("/", createProduct);
  *         description: Error al eliminar producto
  */
 router.get("/:id", getProductById);
+router.put("/:id", uploadProductPhotos.array("photos", 10), updateProduct);
 router.delete("/:id", deleteProduct);
-router.put("/:id", updateProduct);
+
 /**
  * @swagger
  * /products/{id}/status:
@@ -152,10 +191,10 @@ router.put("/:id", updateProduct);
  *       500:
  *         description: Error al actualizar el estado
  */
-
 router.patch("/:id/status", updateProductStatus);
 
 export default router;
+
 /**
  * @swagger
  * components:
@@ -179,6 +218,11 @@ export default router;
  *         status:
  *           type: string
  *           enum: [active, sold, inactive, reserved]
+ *         photos:
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: URL de la foto
  *     ProductInput:
  *       type: object
  *       required:

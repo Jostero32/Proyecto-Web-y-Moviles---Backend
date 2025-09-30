@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import {
   getAllUsers,
@@ -8,8 +7,11 @@ import {
   deleteUser,
   login,
   whoAmI,
+  upload,
+  updateAvatar
 } from "../controllers/user.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
+
 const router = Router();
 
 /**
@@ -53,7 +55,6 @@ const router = Router();
  *         - lastname
  *         - password
  *         - phone
- *         - avatarUrl
  *         - roleId
  *       properties:
  *         dni:
@@ -67,8 +68,6 @@ const router = Router();
  *         password:
  *           type: string
  *         phone:
- *           type: string
- *         avatarUrl:
  *           type: string
  *         roleId:
  *           type: integer
@@ -91,8 +90,6 @@ const router = Router();
  *           type: string
  *         phone:
  *           type: string
- *         avatarUrl:
- *           type: string
  *         roleId:
  *           type: integer
  */
@@ -103,6 +100,8 @@ const router = Router();
  *   get:
  *     summary: Obtiene todos los usuarios
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Lista de usuarios
@@ -113,7 +112,7 @@ const router = Router();
  *               items:
  *                 $ref: '#/components/schemas/User'
  */
-router.get("/",authenticateToken, getAllUsers);
+router.get("/", authenticateToken, getAllUsers);
 
 /**
  * @swagger
@@ -121,6 +120,8 @@ router.get("/",authenticateToken, getAllUsers);
  *   get:
  *     summary: Obtiene usuario actual basado en el token
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Usuario encontrado
@@ -128,10 +129,10 @@ router.get("/",authenticateToken, getAllUsers);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/User'
- *       500:
+ *       404:
  *         description: Usuario no encontrado
  */
-router.get("/whoami",authenticateToken, whoAmI);
+router.get("/whoami", authenticateToken, whoAmI);
 
 /**
  * @swagger
@@ -139,6 +140,8 @@ router.get("/whoami",authenticateToken, whoAmI);
  *   get:
  *     summary: Obtiene un usuario por ID
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -156,7 +159,7 @@ router.get("/whoami",authenticateToken, whoAmI);
  *       404:
  *         description: Usuario no encontrado
  */
-router.get("/:id",authenticateToken, getUserById);
+router.get("/:id", authenticateToken, getUserById);
 
 /**
  * @swagger
@@ -167,16 +170,34 @@ router.get("/:id",authenticateToken, getUserById);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UserRegister'
+ *             type: object
+ *             properties:
+ *               dni:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               lastname:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               roleId:
+ *                 type: integer
+ *               avatar:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Usuario registrado
  *       400:
- *         description: Email ya registrado o rol no válido
+ *         description: Email, DNI ya registrado o rol no válido
  */
-router.post("/register", createUser);
+router.post("/register", upload.single("avatar"), createUser);
 
 /**
  * @swagger
@@ -193,6 +214,13 @@ router.post("/register", createUser);
  *     responses:
  *       200:
  *         description: Login exitoso, retorna token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
  *       400:
  *         description: Usuario no encontrado o contraseña incorrecta
  */
@@ -204,6 +232,8 @@ router.post("/login", login);
  *   put:
  *     summary: Actualiza un usuario
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -223,7 +253,40 @@ router.post("/login", login);
  *       404:
  *         description: Usuario no encontrado
  */
-router.put("/:id",authenticateToken, updateUser);
+router.put("/:id", authenticateToken, updateUser);
+
+/**
+ * @swagger
+ * /users/{id}/avatar:
+ *   put:
+ *     summary: Actualiza el avatar de un usuario
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID del usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Avatar actualizado
+ *       404:
+ *         description: Usuario no encontrado
+ */
+router.put("/:id/avatar", upload.single("avatar"), updateAvatar);
 
 /**
  * @swagger
@@ -231,6 +294,8 @@ router.put("/:id",authenticateToken, updateUser);
  *   delete:
  *     summary: Elimina un usuario
  *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -244,7 +309,6 @@ router.put("/:id",authenticateToken, updateUser);
  *       404:
  *         description: Usuario no encontrado
  */
-router.delete("/:id",authenticateToken, deleteUser);
-
+router.delete("/:id", authenticateToken, deleteUser);
 
 export default router;
