@@ -1,15 +1,46 @@
-import { User, Role, UserRole } from "../models/index.js";
+import { User, Role, UserRole, Product, ProductPhoto } from "../models/index.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/jwt.js";
 import sequelize from "../config/database.js";
+import path from "path";
+import multer from "multer";
+import fs from "fs";
 
+// Configuración de almacenamiento para avatares
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const tempPath = path.join("uploads", "tmp");
+    if (!fs.existsSync(tempPath)) {
+      fs.mkdirSync(tempPath, { recursive: true });
+    }
+    cb(null, tempPath);
+  },
+  filename: function (req, file, cb) {
+    // archivo temporal se guarda con el dni
+    cb(null, req.body.dni + path.extname(file.originalname));
+  },
+});
+
+
+
+// Filtro de archivos (solo imágenes)
+function fileFilter(req, file, cb) {
+  const allowed = ["image/jpeg", "image/png", "image/webp"];
+  if (allowed.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Formato no permitido. Solo JPG/PNG/WebP."), false);
+  }
+}
+export const upload = multer({ storage, fileFilter });
+
+// ===============================================
+// Obtener todos los usuarios
+// ===============================================
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      include: [{ 
-        model: Role, 
-        through: { attributes: [] }
-      }]
+      include: [{ model: Role, through: { attributes: [] } }]
     });
     res.json(users);
   } catch (error) {
@@ -17,48 +48,102 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+// ===============================================
+// Obtener usuario por ID
+// ===============================================
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
-      include: [{
-        model: Role,
-        through: { attributes: [] }
-      }]
+      include: [{ model: Role, through: { attributes: [] } }]
     });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: "Error fetching user", error });
   }
 };
 
-// Registro de usuario
+// ===============================================
+// Registrar usuario
+// ===============================================
+// ===============================================
+// Registrar usuario
+// ===============================================
 export const register = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    
+    const { dni, email, name, lastname, password, phone, roleId } = req.body;
 
-    const { dni, email, name,lastname, password, phone, avatarUrl, roleName } = req.body;
-    const userExists = await User.findOne({ where: { email } });
-    if (userExists) return res.status(400).json({ message: "Email ya registrado" });
+    // Validaciones
+    const userExists = await User.findOne({ where: { email }, transaction: t });
+    if (userExists) {
+      await t.rollback();
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: "Email ya registrado" });
+    }
 
+    const userDniExists = await User.findOne({ where: { dni }, transaction: t });
+    if (userDniExists) {
+      await t.rollback();
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: "DNI ya registrado" });
+    }
+
+    const role = await Role.findByPk(roleId, { transaction: t });
+    if (!role) {
+      await t.rollback();
+      if (req.file) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ message: "Rol no válido" });
+    }
+
+    // Hashear contraseña
     const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ dni:dni,email: email, name: name,lastname: lastname,passwordHash: passwordHash, phone:phone,avatarUrl: avatarUrl, rating: 0 },{transaction: t});
+
+    // Procesar avatar si se subió
+    let avatarUrl;
+    if (req.file) {
+      const userFolder = path.join("uploads", "users", String(dni));
+      if (!fs.existsSync(userFolder)) fs.mkdirSync(userFolder, { recursive: true });
+
+      const finalPath = path.join(userFolder, dni + path.extname(req.file.originalname));
+
+      // mover de tmp a la carpeta final
+      fs.renameSync(req.file.path, finalPath);
+
+      avatarUrl = `/${finalPath.replace(/\\/g, "/")}`;
+    } else {
+      // Usar imagen por defecto
+      avatarUrl = "/uploads/common/user-common.png";
+    }
+
+    // Crear usuario
+    const user = await User.create(
+      { dni, email, name, lastname, passwordHash, phone, avatarUrl, rating: 0 },
+      { transaction: t }
+    );
 
     // Asignar rol
-    const role = await Role.findOne({ where: { roleName } });
-    if (!role) return res.status(400).json({ message: "Rol no válido" });
-    await UserRole.create({ userId: user.id, roleId: role.id },{transaction: t});
+    await UserRole.create({ userId: user.id, roleId: role.id }, { transaction: t });
 
-    await t.commit(); 
-    res.status(201).json({ message: "Usuario registrado", user });
+    await t.commit();
+
+    const { passwordHash: _, ...safeUser } = user.toJSON();
+    res.status(201).json({ message: "Usuario registrado", user: safeUser });
   } catch (error) {
-    await t.rollback(); 
-    res.status(500).json({ message: "Error al registrar usuario", error:error.message } );
+    await t.rollback();
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    res.status(500).json({ message: "Error al registrar usuario", error: error.message });
+  } finally {
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
   }
 };
 
+
+// ===============================================
 // Login de usuario
+// ===============================================
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -78,78 +163,185 @@ export const login = async (req, res) => {
     const token = generateToken({ id: user.id, email: user.email, roles });
     res.json({ token });
   } catch (error) {
-    res.status(500).json({
-      message: "Error en login",
-      error: error.message || error,
-      stack: error.stack || undefined
-    });
+    res.status(500).json({ message: "Error en login", error: error.message });
   }
 };
 
+// ===============================================
+// Crear usuario (alias de register)
+// ===============================================
 export const createUser = async (req, res) => {
-  // Puedes usar register para crear usuarios
   return register(req, res);
 };
 
+// ===============================================
+// Actualizar usuario
+// ===============================================
 export const updateUser = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { name, lastname, phone, avatarUrl, roleName } = req.body;
-    const user = await User.findByPk(req.params.id);
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    const { name, lastname, phone, avatarUrl, roleId } = req.body;
+    const user = await User.findByPk(req.params.id, { transaction: t });
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
 
-    await user.update({name: name,lastname: lastname,phone: phone,avatarUrl: avatarUrl },{transaction: t});
+    await user.update({ name, lastname, phone, avatarUrl }, { transaction: t });
 
     // Cambiar rol si se envía
-    if (roleName) {
-      const role = await Role.findOne({ where: { roleName } });
-      if (!role) return res.status(400).json({ message: "Rol no válido" });
-      await UserRole.destroy({ where: { userId: user.id } },{transaction: t});
-      await UserRole.create({ userId: user.id, roleId: role.id },{transaction: t});
+    if (roleId) {
+      const role = await Role.findByPk(roleId, { transaction: t });
+      if (!role) {
+        await t.rollback();
+        return res.status(400).json({ message: "Rol no válido" });
+      }
+
+      await UserRole.destroy({ where: { userId: user.id }, transaction: t });
+      await UserRole.create({ userId: user.id, roleId: role.id }, { transaction: t });
     }
+
     await t.commit();
     res.json({ message: "Usuario actualizado", user });
   } catch (error) {
     await t.rollback();
-    res.status(500).json({
-      message: "Error al actualizar usuario",
-      error: error.message || error,
-      stack: error.stack || undefined
-    });
+    res.status(500).json({ message: "Error al actualizar usuario", error: error.message });
   }
 };
 
+
+export const updateAvatar = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const user = await User.findByPk(req.params.id, { transaction: t });
+    if (!user) {
+      await t.rollback();
+      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const dni = user.dni; // usamos el dni del usuario ya creado
+
+    // Procesar avatar
+    let avatarUrl = user.avatarUrl;
+    if (req.file) {
+      const userFolder = path.join("uploads", "users", String(dni));
+      if (!fs.existsSync(userFolder)) fs.mkdirSync(userFolder, { recursive: true });
+
+      const finalPath = path.join(userFolder, dni + path.extname(req.file.originalname));
+
+      // Mover archivo desde tmp
+      fs.renameSync(req.file.path, finalPath);
+
+      avatarUrl = `/${finalPath.replace(/\\/g, "/")}`;
+    }
+
+    // Actualizar usuario
+    await user.update({ avatarUrl }, { transaction: t });
+
+    await t.commit();
+    res.json({ message: "Avatar actualizado", avatarUrl });
+  } catch (error) {
+    await t.rollback();
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    res.status(500).json({ message: "Error al actualizar avatar", error: error.message });
+  } finally {
+    // limpieza extra por si quedó algo en tmp
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+  }
+};
+
+// ===============================================
+// Eliminar usuario
+// ===============================================
 export const deleteUser = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    
-    const user = await User.findByPk(req.params.id);
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-    await UserRole.destroy({ where: { userId: user.id } },{transaction: t});
-    await user.destroy({},{transaction: t});
+    const user = await User.findByPk(req.params.id, { transaction: t });
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const dni = user.dni;
+
+    // 1. Borrar carpeta de avatar
+    const userFolder = path.join("uploads", "users", String(dni));
+    if (fs.existsSync(userFolder)) {
+      fs.rmSync(userFolder, { recursive: true, force: true });
+    }
+
+    // 2. Buscar productos asociados
+    const products = await Product.findAll({ where: { sellerId: user.id }, transaction: t });
+
+    for (const product of products) {
+      // 2.1 Eliminar fotos en DB
+      await ProductPhoto.destroy({ where: { productId: product.id }, transaction: t });
+
+      // 2.2 Eliminar carpeta de fotos físicas
+      const productFolder = path.join("uploads", "products", String(product.id));
+      if (fs.existsSync(productFolder)) {
+        fs.rmSync(productFolder, { recursive: true, force: true });
+      }
+
+      // 2.3 Eliminar producto
+      await product.destroy({ transaction: t });
+    }
+
+    // 3. Eliminar roles y usuario
+    await UserRole.destroy({ where: { userId: user.id }, transaction: t });
+    await user.destroy({ transaction: t });
+
     await t.commit();
-    res.json({ message: "Usuario eliminado" });
+    res.json({ message: "Usuario y sus recursos asociados eliminados" });
   } catch (error) {
     await t.rollback();
-    res.status(500).json({ message: "Error al eliminar usuario", error });
+    res.status(500).json({ message: "Error al eliminar usuario", error: error.message });
   }
 };
 
+// ===============================================
 // Cambiar rol de usuario
+// ===============================================
 export const changeUserRole = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     const { roleName } = req.body;
-    const user = await User.findByPk(req.params.id);
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-    const role = await Role.findOne({ where: { roleName } });
-    if (!role) return res.status(400).json({ message: "Rol no válido" });
-    await UserRole.destroy({ where: { userId: user.id } },{transaction: t});
-    await UserRole.create({ userId: user.id, roleId: role.id },{transaction: t});
+    const user = await User.findByPk(req.params.id, { transaction: t });
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const role = await Role.findOne({ where: { roleName }, transaction: t });
+    if (!role) {
+      await t.rollback();
+      return res.status(400).json({ message: "Rol no válido" });
+    }
+
+    await UserRole.destroy({ where: { userId: user.id }, transaction: t });
+    await UserRole.create({ userId: user.id, roleId: role.id }, { transaction: t });
+
     await t.commit();
     res.json({ message: "Rol cambiado", userId: user.id, nuevoRol: roleName });
   } catch (error) {
     await t.rollback();
-    res.status(500).json({ message: "Error al cambiar rol", error });
+    res.status(500).json({ message: "Error al cambiar rol", error: error.message });
+  }
+};
+
+// ===============================================
+// WhoAmI (usuario autenticado desde JWT)
+// ===============================================
+export const whoAmI = async (req, res) => {
+  try {
+    const userId = req.user.id; // viene del JWT
+    const user = await User.findByPk(userId, { include: [Role] });
+    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching user", error: error.message });
   }
 };

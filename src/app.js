@@ -1,5 +1,6 @@
 import express, { Router } from "express";
 import cors from "cors";
+import path from "path";
 import morgan from "morgan";
 import userRoutes from "./routes/user.routes.js";
 import roleRoutes from "./routes/role.routes.js";
@@ -28,4 +29,16 @@ app.use("/messages",authenticateToken, messageRoutes);
 app.use("/notifications",authenticateToken, notificationRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/uploads", express.static("uploads"));
+app.get("/files/users/:subfolder/:filename", authenticateToken, (req, res) => {
+  const { filename } = req.params;  
+  const { subfolder } = req.params;  
+  const filePath = path.join(process.cwd(), "uploads/users",subfolder, filename);
+console.log(filePath);
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      res.status(404).json({ message: "Archivo no encontrado" });
+    }
+  });
+});
 export default app;
