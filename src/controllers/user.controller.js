@@ -345,3 +345,15 @@ export const whoAmI = async (req, res) => {
     res.status(500).json({ message: "Error fetching user", error: error.message });
   }
 };
+
+// ===============================================
+// Eliminar (por token) reutilizo deleteUser
+// ===============================================
+export const deleteMe = async (req, res) => {
+  try {
+    req.params.id = String(req.user.id);
+    return deleteUser(req, res);
+  } catch (error) {
+    return res.status(500).json({ message: "Error al eliminar mi cuenta", error: error.message });
+  }
+};

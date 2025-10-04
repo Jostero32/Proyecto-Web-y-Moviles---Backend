@@ -43,6 +43,22 @@ export const getAllProducts = async (req, res) => {
 };
 
 // =======================================================
+// Obtener mis productos (por token)
+// =======================================================
+export const getMyProducts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const products = await Product.findAll({
+      where: { sellerId: userId },
+      include: [{ model: ProductPhoto }]
+    });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: "Error al recuperar mis productos", error: error.message });
+  }
+};
+
+// =======================================================
 // Obtener producto por ID
 // =======================================================
 export const getProductById = async (req, res) => {
@@ -58,29 +74,12 @@ export const getProductById = async (req, res) => {
 };
 
 // =======================================================
-// Obtener producto por token de usuario
-// =======================================================
-export const getMyProducts = async (req, res) => {
-  try {
-    // Llama al Id del usuario que esta en el token
-    const userId = req.user.id;
-    const products = await Product.findAll({
-      where: {sellerId: userId},
-      include: [{model: ProductPhoto}]
-    });
-
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({message: "Error al recuperar mis productos", error: error.message});
-  }
-}
-
-// =======================================================
 // Crear producto con fotos
 // =======================================================
 export const createProduct = async (req, res) => {
   try {
-    const { sellerId, title, description, price, categoryId, status = "active" } = req.body;
+    const { title, description, price, categoryId, status = "active" } = req.body;
+    const sellerId = req.user.id; // del token
 
     const categoryExists = await Category.findByPk(categoryId);
     if (!categoryExists) return res.status(404).json({ message: "Categoría no encontrada" });
@@ -133,9 +132,15 @@ export const updateProduct = async (req, res) => {
   try {
     const { title, description, price, categoryId, status } = req.body;
     const productId = req.params.id;
+    const userId = req.user.id;
 
     const product = await Product.findByPk(productId);
     if (!product) return res.status(404).json({ message: "Producto no encontrado" });
+
+    const isAdmin = req.user?.roles?.includes("Administrador");
+    if (!isAdmin && product.sellerId !== userId) {
+      return res.status(403).json({ message: "No autorizado" });
+    }
 
     if (categoryId) {
       const categoryExists = await Category.findByPk(categoryId);
@@ -206,6 +211,12 @@ export const updateProductStatus = async (req, res) => {
     const product = await Product.findByPk(productId);
     if (!product) return res.status(404).json({ message: "Producto no encontrado" });
 
+    const userId = req.user.id;
+    const isAdmin = req.user?.roles?.includes("Administrador");
+    if (!isAdmin && product.sellerId !== userId) {
+      return res.status(403).json({ message: "No autorizado" });
+    }
+
     await product.update({ status });
     res.json({ message: "Status actualizado", newStatus: status, product });
   } catch (error) {
@@ -222,6 +233,12 @@ export const deleteProduct = async (req, res) => {
     const product = await Product.findByPk(productId);
 
     if (!product) return res.status(404).json({ message: "Producto no encontrado" });
+
+    const userId = req.user.id;
+    const isAdmin = req.user?.roles?.includes("Administrador");
+    if (!isAdmin && product.sellerId !== userId) {
+      return res.status(403).json({ message: "No autorizado" });
+    }
 
     await ProductPhoto.destroy({ where: { productId } });
 

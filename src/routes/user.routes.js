@@ -5,6 +5,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  deleteMe,
   login,
   whoAmI,
   upload,
@@ -133,6 +134,22 @@ router.get("/", authenticateToken, getAllUsers);
  *         description: Usuario no encontrado
  */
 router.get("/whoami", authenticateToken, whoAmI);
+
+/**
+ * @swagger
+ * /users/me:
+ *   delete:
+ *     summary: Elimina la cuenta del usuario autenticado
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Cuenta eliminada correctamente
+ *       401:
+ *         description: No autenticado
+ */
+router.delete("/me", authenticateToken, deleteMe);
 
 /**
  * @swagger
