@@ -58,6 +58,24 @@ export const getProductById = async (req, res) => {
 };
 
 // =======================================================
+// Obtener producto por token de usuario
+// =======================================================
+export const getMyProducts = async (req, res) => {
+  try {
+    // Llama al Id del usuario que esta en el token
+    const userId = req.user.id;
+    const products = await Product.findAll({
+      where: {sellerId: userId},
+      include: [{model: ProductPhoto}]
+    });
+
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({message: "Error al recuperar mis productos", error: error.message});
+  }
+}
+
+// =======================================================
 // Crear producto con fotos
 // =======================================================
 export const createProduct = async (req, res) => {

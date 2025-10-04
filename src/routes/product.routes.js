@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAllProducts,
   getProductById,
+  getMyProducts,
   createProduct,
   updateProduct,
   updateProductStatus,
@@ -73,6 +74,7 @@ const router = Router();
  *         description: Error al crear producto
  */
 router.get("/", getAllProducts);
+router.get("/my", getMyProducts);
 router.post("/", uploadProductPhotos.array("photos", 10), createProduct);
 
 /**
