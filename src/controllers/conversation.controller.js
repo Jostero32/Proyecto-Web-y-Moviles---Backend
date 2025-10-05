@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import Product from "../models/product.model.js";
 import { Op } from "sequelize";
 
 // ===============================================
@@ -63,7 +64,7 @@ export const createConversation = async (req, res) => {
      }
      return res.status(201).json(conversation);
   } catch (error) {
-    res.status(500).json({ message: "Error creando conversación", error });
+    res.status(500).json({ message: "Error creando conversación", error:error.message });
   }
 };
 

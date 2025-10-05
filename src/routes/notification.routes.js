@@ -25,6 +25,8 @@ const router = Router();
  *           type: integer
  *         message:
  *           type: string
+ *         title:
+ *           type: string
  *         read:
  *           type: boolean
  *         createdAt:
@@ -35,10 +37,13 @@ const router = Router();
  *       required:
  *         - typeName
  *         - message
+ *         - title
  *       properties:
  *         typeName:
  *           type: string
  *         message:
+ *           type: string
+ *         title:
  *           type: string
  *     NotificationUpdate:
  *       type: object

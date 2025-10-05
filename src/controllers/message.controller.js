@@ -74,9 +74,7 @@ export const createMessage = async (req, res) => {
         : conversation.buyerId;
 
     let type = await NotificationType.findOne({ where: { typeName: "Mensaje" } });
-    if (!type) {
-      type = await NotificationType.create({ typeName: "Mensaje" });
-    }
+
 
     await Notification.create({
       userId: receiverId,

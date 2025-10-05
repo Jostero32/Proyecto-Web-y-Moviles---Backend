@@ -54,18 +54,16 @@ export const getNotificationById = async (req, res) => {
 export const createNotification = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { typeName, message } = req.body;
+    const { typeName, message, title } = req.body;
 
-    if (!typeName || !message)
-      return res.status(400).json({ message: "typeName y message requeridos" });
+    if (!typeName || !message|| !title)
+      return res.status(400).json({ message: "title, typeName y message requeridos" });
 
-    // Busca o crea el tipo de notificación
-    let type = await NotificationType.findOne({ where: { typeName } });
-    if (!type) type = await NotificationType.create({ typeName });
 
     // Crea la notificación
     const notif = await Notification.create({
       userId,
+      title,
       typeId: type.id,
       message,
     });
