@@ -31,8 +31,9 @@ export async function seedData() {
             "$2b$10$b1c0c5afGkn2LcVcnBLLb.jugmRAc.utHMzNA2fJMhOjWU7lLG/F2",
           phone: "000000000",
           avatarUrl:
-            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHfd3PPulVSp4ZbuBFNkePoUR_fLJQe474Ag&s",
+            "/uploads/common/user-common.png",
           rating: 5,
+
         },
       ],
       { ignoreDuplicates: true }
