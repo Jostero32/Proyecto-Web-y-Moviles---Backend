@@ -78,7 +78,7 @@ export const getProductById = async (req, res) => {
 // =======================================================
 export const createProduct = async (req, res) => {
   try {
-    const { title, description, price, categoryId, status = "active" } = req.body;
+    const { title, description, price, categoryId, status = "active",location,locationCoords } = req.body;
     const sellerId = req.user.id; // del token
 
     const categoryExists = await Category.findByPk(categoryId);
@@ -94,7 +94,9 @@ export const createProduct = async (req, res) => {
       description,
       price,
       categoryId,
-      status
+      status,
+      location,
+      locationCoords: JSON.parse(locationCoords)
     });
 
     // Manejo de fotos
@@ -130,7 +132,7 @@ export const createProduct = async (req, res) => {
 // =======================================================
 export const updateProduct = async (req, res) => {
   try {
-    const { title, description, price, categoryId, status } = req.body;
+    const { title, description, price, categoryId, status,location,locationCoords } = req.body;
     const productId = req.params.id;
     const userId = req.user.id;
 
@@ -153,7 +155,9 @@ export const updateProduct = async (req, res) => {
       description: description || product.description,
       price: price || product.price,
       categoryId: categoryId || product.categoryId,
-      status: status || product.status
+      status: status || product.status,
+      location: location || product.location,
+      locationCoords: locationCoords ? JSON.parse(locationCoords) : product.locationCoords
     });
 
     // =========================================

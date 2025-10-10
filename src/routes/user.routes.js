@@ -9,7 +9,8 @@ import {
   login,
   whoAmI,
   upload,
-  updateAvatar
+  updateAvatar,
+  updatePasswordUser
 } from "../controllers/user.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
 
@@ -245,6 +246,53 @@ router.post("/login", login);
 
 /**
  * @swagger
+ * /users/password:
+ *   put:
+ *     summary: Actualizar la contraseña de un usuario
+ *     description: Permite al usuario actualizar su contraseña proporcionando la contraseña actual y una nueva.
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 description: Contraseña actual del usuario
+ *                 example: "123456"
+ *               newPassword:
+ *                 type: string
+ *                 description: Nueva contraseña
+ *                 example: "abcDEF123!"
+ *     responses:
+ *       200:
+ *         description: Contraseña actualizada correctamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Usuario actualizado"
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Contraseña incorrecta
+ *       404:
+ *         description: Usuario no encontrado
+ *       500:
+ *         description: Error al actualizar usuario
+ */
+router.put("/password",authenticateToken, updatePasswordUser);
+
+/**
+ * @swagger
  * /users/{id}:
  *   put:
  *     summary: Actualiza un usuario
@@ -327,5 +375,8 @@ router.put("/:id/avatar", upload.single("avatar"), updateAvatar);
  *         description: Usuario no encontrado
  */
 router.delete("/:id", authenticateToken, deleteUser);
+
+
+
 
 export default router;
