@@ -209,6 +209,34 @@ export const updateUser = async (req, res) => {
   }
 };
 
+// ===============================================
+// Actualizar Contraseña usuario
+// ===============================================
+export const updatePasswordUser = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findOne({ where: { id: userId }, transaction: t });
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+    // Verificar contraseña actual
+    const valid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!valid) return res.status(400).json({ message: "Contraseña incorrecta" });
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.update({ passwordHash }, { transaction: t });
+
+
+    await t.commit();
+    res.json({ message: "Usuario actualizado", user });
+  } catch (error) {
+    await t.rollback();
+    res.status(500).json({ message: "Error al actualizar usuario", error: error.message });
+  }
+};
 
 export const updateAvatar = async (req, res) => {
   const t = await sequelize.transaction();
@@ -343,5 +371,17 @@ export const whoAmI = async (req, res) => {
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: "Error fetching user", error: error.message });
+  }
+};
+
+// ===============================================
+// Eliminar (por token) reutilizo deleteUser
+// ===============================================
+export const deleteMe = async (req, res) => {
+  try {
+    req.params.id = String(req.user.id);
+    return deleteUser(req, res);
+  } catch (error) {
+    return res.status(500).json({ message: "Error al eliminar mi cuenta", error: error.message });
   }
 };

@@ -11,8 +11,11 @@ import messageRoutes from "./routes/message.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import { swaggerUi, swaggerSpec } from "./config/swagger.js";
 import {authenticateToken} from "./middlewares/auth.middleware.js"
+import expressWs from "express-ws";
+import { metodos } from "./sockets/sockets.js";
 
 const app = express();
+const wsInstance =expressWs(app); // 💡 agrega app.ws()
 
 // Middlewares
 app.use(cors());
@@ -30,15 +33,8 @@ app.use("/notifications",authenticateToken, notificationRoutes);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/uploads", express.static("uploads"));
-app.get("/files/users/:subfolder/:filename", authenticateToken, (req, res) => {
-  const { filename } = req.params;  
-  const { subfolder } = req.params;  
-  const filePath = path.join(process.cwd(), "uploads/users",subfolder, filename);
-console.log(filePath);
-  res.sendFile(filePath, (err) => {
-    if (err) {
-      res.status(404).json({ message: "Archivo no encontrado" });
-    }
-  });
-});
+
+
+app.ws("/", (ws, req) => metodos(ws, req, wsInstance.getWss()) ); // 💡 ruta WS
+
 export default app;
