@@ -96,7 +96,7 @@ router.post("/",authenticateToken, uploadProductPhotos.array("photos", 10), crea
  *       500:
  *         description: Error al recuperar productos
  */
-router.get("/my", getMyProducts);
+router.get("/my",authenticateToken, getMyProducts);
 
 /**
  * @swagger
