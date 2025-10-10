@@ -8,6 +8,7 @@ import {
   updateCategory,
   deleteCategory,
 } from "../controllers/category.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 /**
@@ -52,7 +53,7 @@ const router = Router();
  *         description: Error al crear categoría
  */
 router.get("/", getAllCategories);
-router.post("/", createCategory);
+router.post("/",authenticateToken, createCategory);
 
 
 /**
@@ -142,8 +143,8 @@ router.get("/main", getMainCategories);
  *         description: Error al eliminar categoría
  */
 router.get("/:id", getCategoryById);
-router.put("/:id", updateCategory);
-router.delete("/:id", deleteCategory);
+router.put("/:id",authenticateToken, updateCategory);
+router.delete("/:id",authenticateToken, deleteCategory);
 
 /**
  * @swagger

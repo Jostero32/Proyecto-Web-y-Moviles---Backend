@@ -9,6 +9,7 @@ import {
   deleteProduct,
   uploadProductPhotos
 } from "../controllers/product.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -70,7 +71,7 @@ const router = Router();
  *         description: Error al crear producto
  */
 router.get("/", getAllProducts);
-router.post("/", uploadProductPhotos.array("photos", 10), createProduct);
+router.post("/",authenticateToken, uploadProductPhotos.array("photos", 10), createProduct);
 
 /**
  * @swagger
@@ -178,8 +179,8 @@ router.get("/my", getMyProducts);
  *         description: Error al eliminar producto
  */
 router.get("/:id", getProductById);
-router.put("/:id", uploadProductPhotos.array("photos", 10), updateProduct);
-router.delete("/:id", deleteProduct);
+router.put("/:id",authenticateToken, uploadProductPhotos.array("photos", 10), updateProduct);
+router.delete("/:id",authenticateToken, deleteProduct);
 
 /**
  * @swagger
@@ -218,7 +219,7 @@ router.delete("/:id", deleteProduct);
  *       500:
  *         description: Error al actualizar el estado
  */
-router.patch("/:id/status", updateProductStatus);
+router.patch("/:id/status",authenticateToken, updateProductStatus);
 
 export default router;
 

@@ -25,8 +25,8 @@ app.use(express.json());
 // Rutas
 app.use("/users",userRoutes);
 app.use("/roles",authenticateToken, roleRoutes);
-app.use("/categories",authenticateToken, categoryRoutes);
-app.use("/products",authenticateToken, productRoutes);
+app.use("/categories", categoryRoutes);
+app.use("/products", productRoutes);
 app.use("/conversations",authenticateToken, conversationRoutes);
 app.use("/messages",authenticateToken, messageRoutes);
 app.use("/notifications",authenticateToken, notificationRoutes);
