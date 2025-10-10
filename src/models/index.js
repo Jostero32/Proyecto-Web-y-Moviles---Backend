@@ -42,6 +42,14 @@ ProductPhoto.belongsTo(Product, { foreignKey: "productId" });
 User.belongsToMany(Product, { through: Favorite, foreignKey: "userId", otherKey: "productId", as: "favoriteProducts" });
 Product.belongsToMany(User, { through: Favorite, foreignKey: "productId", otherKey: "userId", as: "usersWhoFavorited" });
 
+// Favorite ↔ Product (para poder hacer include directo)
+Favorite.belongsTo(Product, { foreignKey: "productId" });
+Product.hasMany(Favorite, { foreignKey: "productId" });
+
+// Favorite ↔ User (para poder hacer include directo)
+Favorite.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(Favorite, { foreignKey: "userId" });
+
 // Conversations ↔ Products
 Product.hasMany(Conversation, { foreignKey: "productId" });
 Conversation.belongsTo(Product, { foreignKey: "productId" });
