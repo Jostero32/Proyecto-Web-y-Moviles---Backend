@@ -56,6 +56,9 @@ export async function seedData() {
           { name: "Celulares y accesorios", description: "Smartphones, fundas, cargadores" },
           { name: "Computadoras y laptops", description: "PC, portátiles y accesorios" },
           { name: "Consolas y videojuegos", description: "Consolas, juegos y accesorios" },
+          { name: "Audio", description: "Auriculares, parlantes, micrófonos" },
+          { name: "Cámaras", description: "Fotografía y video" },
+          { name: "Accesorios tecnológicos", description: "Cables, fundas, soportes" }
         ],
       },
       {
@@ -65,6 +68,8 @@ export async function seedData() {
           { name: "Ropa de hombre", description: "Camisetas, pantalones, chaquetas" },
           { name: "Ropa de mujer", description: "Vestidos, blusas, faldas" },
           { name: "Zapatos", description: "Calzado para todas las edades" },
+          { name: "Accesorios de moda", description: "Bolsos, bufandas, gafas, cinturones" },
+          { name: "Joyería", description: "Collares, anillos y relojes" },
         ],
       },
       {
@@ -74,9 +79,45 @@ export async function seedData() {
           { name: "Muebles de sala", description: "Sofás, mesas de centro" },
           { name: "Cocina", description: "Utensilios y electrodomésticos pequeños" },
           { name: "Decoración", description: "Cuadros, lámparas, adornos" },
+          { name: "Electrodomésticos", description: "Licuadoras, aspiradoras, microondas" },
+          { name: "Jardín", description: "Muebles y herramientas para exteriores" },
+        ],
+      },
+      {
+        name: "Deportes",
+        description: "Equipos deportivos y fitness",
+        subcategories: [
+          { name: "Gimnasio", description: "Pesas, máquinas, accesorios fitness" },
+          { name: "Ciclismo", description: "Bicicletas y repuestos" },
+          { name: "Fútbol", description: "Balones, uniformes, calzado" },
+          { name: "Camping", description: "Tiendas, mochilas, linternas" },
+          { name: "Natación", description: "Trajes de baño, goggles, toallas" },
+        ],
+      },
+      {
+        name: "Vehículos",
+        description: "Autos, motos y repuestos",
+        subcategories: [
+          { name: "Autos", description: "Vehículos nuevos y usados" },
+          { name: "Motos", description: "Motocicletas y scooters" },
+          { name: "Repuestos", description: "Partes y mantenimiento" },
+          { name: "Accesorios para vehículos", description: "Tapetes, luces, GPS" },
+          { name: "Llantas", description: "Neumáticos de todo tipo" },
+        ],
+      },
+      {
+        name: "Gaming",
+        description: "Consolas, videojuegos y accesorios",
+        subcategories: [
+          { name: "Consolas", description: "PlayStation, Xbox, Nintendo" },
+          { name: "Videojuegos", description: "Títulos físicos y digitales" },
+          { name: "PC Gaming", description: "Equipos, periféricos y componentes" },
+          { name: "Accesorios Gaming", description: "Teclados, sillas, headsets" },
+          { name: "Mandos", description: "Controles y gamepads" },
         ],
       },
     ];
+
 
 
     for (const cat of categories) {
