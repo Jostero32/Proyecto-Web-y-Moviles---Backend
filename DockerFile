@@ -11,6 +11,7 @@ RUN npm install
 # Copy application source code
 COPY . .
 
+VOLUME ["/app/uploads"]
 # Expose port (change if your server uses a different port)
 EXPOSE 3020
 
