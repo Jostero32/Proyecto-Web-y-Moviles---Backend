@@ -10,9 +10,15 @@ import {
   whoAmI,
   upload,
   updateAvatar,
-  updatePasswordUser
+  updatePasswordUser,
+  requestPasswordReset,
+  resetPassword,
+  verifyEmail,
+  resendVerification,
+  validateResetToken
 } from "../controllers/user.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { verifyEmailPage, resetPasswordPage } from "../controllers/authPages.controller.js";
 
 const router = Router();
 
@@ -115,6 +121,13 @@ const router = Router();
  *                 $ref: '#/components/schemas/User'
  */
 router.get("/", authenticateToken, getAllUsers);
+
+// Rutas públicas: verificación y restablecimiento (deben ir antes de ":id")
+router.get("/verify-email", verifyEmailPage);
+router.post("/resend-verification", resendVerification);
+router.get("/reset-password", resetPasswordPage);
+router.post("/request-password-reset", requestPasswordReset);
+router.post("/reset-password", resetPassword);
 
 /**
  * @swagger
@@ -243,6 +256,14 @@ router.post("/register", upload.single("avatar"), createUser);
  *         description: Usuario no encontrado o contraseña incorrecta
  */
 router.post("/login", login);
+
+// Verificación de email
+router.get("/verify-email", verifyEmail);
+router.post("/resend-verification", resendVerification);
+
+// Restablecimiento de contraseña
+router.post("/request-password-reset", requestPasswordReset);
+router.post("/reset-password", resetPassword);
 
 /**
  * @swagger
