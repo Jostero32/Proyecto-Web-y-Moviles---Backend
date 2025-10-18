@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: ./DockerFile
-    env_file:
-      - .env
     environment:
       DB_NAME: marketplace
       DB_USER: jostero32
