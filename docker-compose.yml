@@ -13,6 +13,8 @@ services:
       JWT_SECRET: mi_secreto_jwt
       PORT: 3020
       PORT_SWAGGER: 8080
+      EMAIL_USER: carrascokevin756@gmail.com
+      EMAIL_PASS: "rbyo udjh uigk bhqn"
     depends_on:
       - db-postgres
     ports:
