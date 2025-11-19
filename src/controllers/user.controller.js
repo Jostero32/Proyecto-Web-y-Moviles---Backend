@@ -119,7 +119,18 @@ export const register = async (req, res) => {
 
     // Crear usuario
     const user = await User.create(
-      { dni, email, name, lastname, passwordHash, phone, avatarUrl, rating: 0, verified: false },
+      {
+        dni,
+        email,
+        name,
+        lastname,
+        passwordHash,
+        phone,
+        avatarUrl,
+        rating: 0,
+        reviewCount: 0,
+        verified: false
+      },
       { transaction: t }
     );
 
@@ -368,6 +379,53 @@ export const changeUserRole = async (req, res) => {
   } catch (error) {
     await t.rollback();
     res.status(500).json({ message: "Error al cambiar rol", error: error.message });
+  }
+};
+
+// ===============================================
+// Puntuar a un vendedor
+// ===============================================
+export const rateSeller = async (req, res) => {
+  const t = await sequelize.transaction();
+  try {
+    const { id: sellerId } = req.params;
+    const { score } = req.body;
+    const raterId = req.user.id;
+
+    const numericScore = Number(score);
+    if (!Number.isFinite(numericScore) || numericScore < 1 || numericScore > 5) {
+      await t.rollback();
+      return res.status(400).json({ message: "El puntaje debe estar entre 1 y 5" });
+    }
+
+    if (Number(sellerId) === raterId) {
+      await t.rollback();
+      return res.status(400).json({ message: "No puedes calificarte a ti mismo" });
+    }
+
+    const seller = await User.findByPk(sellerId, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!seller) {
+      await t.rollback();
+      return res.status(404).json({ message: "Vendedor no encontrado" });
+    }
+
+    const currentCount = seller.reviewCount || 0;
+    const currentAverage = seller.rating || 0;
+
+    const newCount = currentCount + 1;
+    const newAverage = ((currentAverage * currentCount) + numericScore) / newCount;
+
+    await seller.update({ rating: newAverage, reviewCount: newCount }, { transaction: t });
+    await t.commit();
+
+    return res.json({
+      message: "Puntaje registrado",
+      rating: newAverage,
+      reviewCount: newCount
+    });
+  } catch (error) {
+    await t.rollback();
+    return res.status(500).json({ message: "Error al puntuar vendedor", error: error.message });
   }
 };
 

@@ -15,7 +15,8 @@ import {
   resetPassword,
   verifyEmail,
   resendVerification,
-  validateResetToken
+  validateResetToken,
+  rateSeller
 } from "../controllers/user.controller.js";
 import { authenticateToken } from "../middlewares/auth.middleware.js";
 import { verifyEmailPage, resetPasswordPage } from "../controllers/authPages.controller.js";
@@ -45,6 +46,8 @@ const router = Router();
  *           type: string
  *         rating:
  *           type: number
+ *         reviewCount:
+ *           type: integer
  *         Roles:
  *           type: array
  *           items:
@@ -101,6 +104,44 @@ const router = Router();
  *         roleId:
  *           type: integer
  */
+
+/**
+ * @swagger
+ * /users/{id}/rate:
+ *   post:
+ *     summary: Califica a un vendedor con un puntaje entre 1 y 5
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID del vendedor a calificar
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - score
+ *             properties:
+ *               score:
+ *                 type: number
+ *                 minimum: 1
+ *                 maximum: 5
+ *     responses:
+ *       200:
+ *         description: Puntaje registrado
+ *       400:
+ *         description: Datos invǭlidos o no autorizado
+ *       404:
+ *         description: Vendedor no encontrado
+ */
+router.post("/:id/rate", authenticateToken, rateSeller);
 
 /**
  * @swagger
