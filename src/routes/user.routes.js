@@ -131,7 +131,7 @@ const router = Router();
  *             properties:
  *               score:
  *                 type: number
- *                 minimum: 1
+ *                 minimum: 0
  *                 maximum: 5
  *     responses:
  *       200:

@@ -393,9 +393,9 @@ export const rateSeller = async (req, res) => {
     const raterId = req.user.id;
 
     const numericScore = Number(score);
-    if (!Number.isFinite(numericScore) || numericScore < 1 || numericScore > 5) {
+    if (!Number.isFinite(numericScore) || numericScore < 0 || numericScore > 5) {
       await t.rollback();
-      return res.status(400).json({ message: "El puntaje debe estar entre 1 y 5" });
+      return res.status(400).json({ message: "El puntaje debe estar entre 0 y 5" });
     }
 
     if (Number(sellerId) === raterId) {
