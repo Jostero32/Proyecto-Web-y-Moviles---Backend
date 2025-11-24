@@ -7,6 +7,7 @@ import Category from "./category.model.js";
 import Product from "./product.model.js";
 import ProductPhoto from "./productPhoto.model.js";
 import Favorite from "./favorite.model.js";
+import ProductRating from "./productRating.model.js";
 import Conversation from "./conversation.model.js";
 import Message from "./message.model.js";
 import Notification from "./notification.model.js";
@@ -50,6 +51,16 @@ Product.hasMany(Favorite, { foreignKey: "productId" });
 Favorite.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(Favorite, { foreignKey: "userId" });
 
+// Users ↔ Products (Ratings Many-to-Many)
+User.belongsToMany(Product, { through: ProductRating, foreignKey: "userId", otherKey: "productId", as: "ratedProducts" });
+Product.belongsToMany(User, { through: ProductRating, foreignKey: "productId", otherKey: "userId", as: "raters" });
+
+// Rating direct relations
+ProductRating.belongsTo(Product, { foreignKey: "productId" });
+Product.hasMany(ProductRating, { foreignKey: "productId" });
+ProductRating.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(ProductRating, { foreignKey: "userId" });
+
 // Conversations ↔ Products
 Product.hasMany(Conversation, { foreignKey: "productId" });
 Conversation.belongsTo(Product, { foreignKey: "productId" });
@@ -88,6 +99,7 @@ export {
   Product,
   ProductPhoto,
   Favorite,
+  ProductRating,
   Conversation,
   Message,
   Notification,

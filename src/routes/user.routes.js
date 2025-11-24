@@ -128,11 +128,15 @@ const router = Router();
  *             type: object
  *             required:
  *               - score
+ *               - productId
  *             properties:
  *               score:
  *                 type: number
  *                 minimum: 0
  *                 maximum: 5
+ *               productId:
+ *                 type: integer
+ *                 description: ID del producto asociado a la compra
  *     responses:
  *       200:
  *         description: Puntaje registrado

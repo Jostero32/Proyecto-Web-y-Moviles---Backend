@@ -1,4 +1,4 @@
-import { User, Role, UserRole, Product, ProductPhoto } from "../models/index.js";
+import { User, Role, UserRole, Product, ProductPhoto, ProductRating } from "../models/index.js";
 import bcrypt from "bcryptjs";
 import { generateToken, generateVerificationToken, verifyVerificationToken, generatePasswordResetToken, verifyPasswordResetToken } from "../utils/jwt.js";
 import sequelize from "../config/database.js";
@@ -388,17 +388,29 @@ export const changeUserRole = async (req, res) => {
 export const rateSeller = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    const { id: sellerId } = req.params;
-    const { score } = req.body;
+    const sellerId = Number(req.params.id);
+    const { score, productId } = req.body;
     const raterId = req.user.id;
 
     const numericScore = Number(score);
+    const numericProductId = Number(productId);
+
+    if (!Number.isInteger(sellerId) || sellerId <= 0) {
+      await t.rollback();
+      return res.status(400).json({ message: "ID de vendedor inválido" });
+    }
+
     if (!Number.isFinite(numericScore) || numericScore < 0 || numericScore > 5) {
       await t.rollback();
       return res.status(400).json({ message: "El puntaje debe estar entre 0 y 5" });
     }
 
-    if (Number(sellerId) === raterId) {
+    if (!Number.isInteger(numericProductId) || numericProductId <= 0) {
+      await t.rollback();
+      return res.status(400).json({ message: "ID de producto inválido" });
+    }
+
+    if (sellerId === raterId) {
       await t.rollback();
       return res.status(400).json({ message: "No puedes calificarte a ti mismo" });
     }
@@ -409,11 +421,44 @@ export const rateSeller = async (req, res) => {
       return res.status(404).json({ message: "Vendedor no encontrado" });
     }
 
-    const currentCount = seller.reviewCount || 0;
-    const currentAverage = seller.rating || 0;
+    const product = await Product.findByPk(numericProductId, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!product) {
+      await t.rollback();
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
 
+    if (Number(product.sellerId) !== sellerId) {
+      await t.rollback();
+      return res.status(400).json({ message: "El producto no pertenece a este vendedor" });
+    }
+
+    const existingRating = await ProductRating.findOne({
+      where: { userId: raterId, productId: numericProductId },
+      transaction: t,
+      lock: t.LOCK.UPDATE
+    });
+    if (existingRating) {
+      await t.rollback();
+      return res.status(409).json({ message: "Ya calificaste este producto" });
+    }
+
+    const currentCount = await ProductRating.count({
+      include: [{
+        model: Product,
+        required: true,
+        where: { sellerId }
+      }],
+      transaction: t,
+    });
+    const currentAverage = seller.rating || 0;
     const newCount = currentCount + 1;
     const newAverage = ((currentAverage * currentCount) + numericScore) / newCount;
+
+    await ProductRating.create({
+      userId: raterId,
+      productId: numericProductId,
+      score: numericScore
+    }, { transaction: t });
 
     await seller.update({ rating: newAverage, reviewCount: newCount }, { transaction: t });
     await t.commit();

@@ -24,6 +24,12 @@ const router = Router();
  *           type: integer
  *         sellerId:
  *           type: integer
+ *         rating:
+ *           type: number
+ *           description: Calificación otorgada por el comprador al producto de la conversación (null si no existe)
+ *         isRated:
+ *           type: boolean
+ *           description: Indica si el comprador ya calificó (true incluso si la calificación es 0)
  *     ConversationCreate:
  *       type: object
  *       required:

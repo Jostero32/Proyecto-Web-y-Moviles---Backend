@@ -1,6 +1,7 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
 import Product from "../models/product.model.js";
+import ProductRating from "../models/productRating.model.js";
 import { Op } from "sequelize";
 
 // ===============================================
@@ -15,7 +16,8 @@ export const getAllConversations = async (req, res) => {
       },
       order:[["id", "DESC"]]
     });
-    res.json(conversations);
+    const withRatings = await Promise.all(conversations.map(enrichConversationWithRatings));
+    res.json(withRatings);
   } catch (error) {
     res.status(500).json({message: "Error fetching conversations", error: error.message});
   }
@@ -29,7 +31,8 @@ export const getConversationById = async (req, res) => {
     const userId = req.user.id;
     const conversation = await validateConversation(req.params.id, userId);
     
-    res.json(conversation);
+    const enriched = await enrichConversationWithRatings(conversation);
+    res.json(enriched);
   } catch (error) {
     res.status(500).json({ message: "Error fetching conversation", error });
   }
@@ -62,7 +65,8 @@ export const createConversation = async (req, res) => {
      if (!conversation) {
       conversation = await Conversation.create({ productId, buyerId: userId, sellerId });
      }
-     return res.status(201).json(conversation);
+     const enriched = await enrichConversationWithRatings(conversation);
+     return res.status(201).json(enriched);
   } catch (error) {
     res.status(500).json({ message: "Error creando conversación", error:error.message });
   }
@@ -133,4 +137,21 @@ const validateConversation = async (conversationId, userId) => {
   }
 
   return conversation;
+}
+
+// ===============================================
+// Helpers
+// ===============================================
+async function enrichConversationWithRatings(conversation) {
+  const data = conversation.toJSON ? conversation.toJSON() : conversation;
+  const { productId, buyerId } = data;
+
+  const ratingRow = await ProductRating.findOne({ where: { userId: buyerId, productId } });
+  const hasRating = Boolean(ratingRow);
+
+  return {
+    ...data,
+    rating: hasRating ? ratingRow.score : null,
+    isRated: hasRating,
+  };
 }
