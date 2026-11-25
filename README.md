@@ -1,4 +1,4 @@
-# Marketplace · Backend (Web y Móviles)
+# Shop&Buy · Backend del marketplace (Web y Móviles)
 
 API REST de un **marketplace** de compra y venta entre usuarios: productos con fotos, categorías y
 subcategorías, favoritos, calificaciones, chat entre comprador y vendedor en tiempo real, notificaciones y
@@ -6,6 +6,26 @@ cuentas con verificación por correo. Proyecto de la asignatura **Aplicaciones W
 frontend está en [Proyecto-Web-y-Moviles---Frontend](https://github.com/Jostero32/Proyecto-Web-y-Moviles---Frontend).
 
 **Stack:** Node.js · Express 5 · Sequelize · PostgreSQL · JWT · Multer · Nodemailer · WebSocket (express-ws) · Swagger
+
+![Shop&Buy](docs/img/portada.png)
+
+| Productos | Detalle | Chat en tiempo real |
+|---|---|---|
+| <img src="docs/img/productos.png" alt="Listado de productos" /> | <img src="docs/img/detalle.png" alt="Detalle de producto" /> | <img src="docs/img/chat.png" alt="Chat entre comprador y vendedor" /> |
+
+<sub>Capturas con datos de demostración inventados. La interfaz es del
+[frontend del equipo](https://github.com/Jostero32/Proyecto-Web-y-Moviles---Frontend); este repositorio es la API.</sub>
+
+## Arquitectura
+
+```mermaid
+flowchart LR
+    W["Frontend React<br/>Shop&Buy"] -->|"REST + JWT"| A["API Express 5"]
+    W <-->|"WebSocket<br/>chat y notificaciones"| A
+    A -->|"Sequelize"| DB[("PostgreSQL<br/>db-postgres")]
+    A -->|"Multer"| U[/"uploads/<br/>fotos y avatares"/]
+    A -->|"Nodemailer · SMTP"| M["Correo<br/>verificación y contraseña"]
+```
 
 ## Inicio rápido
 

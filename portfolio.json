@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "titulo": "Shop&Buy · marketplace",
+  "resumen": "Marketplace de compra y venta de segunda mano: productos con fotos y ubicación, chat entre comprador y vendedor en tiempo real, favoritos, calificaciones y cuentas verificadas por correo.",
+  "categorias": ["fullstack", "backend"],
+  "stack": ["Express", "PostgreSQL", "WebSocket", "React", "Tailwind", "Docker", "Sequelize", "JWT"],
+  "estado": "Funcional (proyecto académico)",
+  "destacado": true,
+  "orden": 3,
+  "anio": 2025,
+  "rol": "Backend completo (API, chat por WebSocket, correos y Docker); frontend en equipo",
+  "portada": "docs/img/portada.png",
+  "capturas": ["docs/img/portada.png", "docs/img/inicio.png", "docs/img/productos.png", "docs/img/detalle.png", "docs/img/chat.png", "docs/img/favoritos.png", "docs/img/vender.png"],
+  "aspectos": [
+    "Chat y notificaciones en tiempo real con WebSocket",
+    "Verificación de cuenta y recuperación de contraseña por correo",
+    "Fotos de productos con Multer y búsqueda por cercanía",
+    "Documentación de la API con Swagger"
+  ],
+  "demo": null
+}
