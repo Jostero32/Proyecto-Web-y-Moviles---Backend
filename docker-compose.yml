@@ -1,37 +1,36 @@
-version: '3.8'
+# Backend del marketplace con PostgreSQL.
+#
+#   cp .env.example .env      # y complete los valores
+#   docker compose up -d --build
+#
+# Las credenciales se leen de .env (no se versiona). La base se alcanza por el
+# nombre del contenedor (db-postgres) dentro de la red de Docker.
 services:
   backend:
     build:
       context: .
       dockerfile: ./DockerFile
+    env_file: .env
     environment:
-      DB_NAME: marketplace
-      DB_USER: jostero32
-      DB_PASS: 1234
       DB_HOST: db-postgres
       DB_DIALECT: postgres
-      JWT_SECRET: mi_secreto_jwt
-      PORT: 3020
-      PORT_SWAGGER: 8080
-      EMAIL_USER: carrascokevin756@gmail.com
-      EMAIL_PASS: "rbyo udjh uigk bhqn"
     depends_on:
       - db-postgres
     ports:
-      - "8080:3020"
+      - "${API_PORT:-8080}:${PORT:-3020}"
     volumes:
       - uploads_data:/usr/src/app/uploads
 
   db-postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: marketplace
-      POSTGRES_USER: jostero32
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: ${DB_NAME:-marketplace}
+      POSTGRES_USER: ${DB_USER:-marketplace}
+      POSTGRES_PASSWORD: ${DB_PASS:?Defina DB_PASS en .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5555:5432"
+      - "127.0.0.1:${DB_PORT_HOST:-5555}:5432"
 
 volumes:
   postgres_data:
