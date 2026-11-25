@@ -5,7 +5,7 @@ subcategorías, favoritos, calificaciones, chat entre comprador y vendedor en ti
 cuentas con verificación por correo. Proyecto de la asignatura **Aplicaciones Web y Móviles** (2025); el
 frontend está en [Proyecto-Web-y-Moviles---Frontend](https://github.com/Jostero32/Proyecto-Web-y-Moviles---Frontend).
 
-**Stack:** Node.js · Express 5 · Sequelize · PostgreSQL · JWT · Multer · Nodemailer · Socket.IO · Swagger
+**Stack:** Node.js · Express 5 · Sequelize · PostgreSQL · JWT · Multer · Nodemailer · WebSocket (express-ws) · Swagger
 
 ## Inicio rápido
 
@@ -47,7 +47,7 @@ src/
 ├── controllers/   Lógica de cada endpoint
 ├── models/        Modelos Sequelize (usuarios, productos, fotos, chat, notificaciones…)
 ├── middlewares/   Autenticación JWT y subida de archivos
-├── sockets/       Chat en tiempo real
+├── sockets/       Chat y notificaciones en tiempo real (WebSocket en /)
 ├── utils/         JWT y envío de correos
 └── config/        Base de datos y Swagger
 ```
